@@ -56,10 +56,16 @@ def _module_available(module_path: str) -> bool:
         module = importlib.import_module(module_names[0])
     except ImportError:
         return False
-    for name in module_names[1:]:
-        if not hasattr(module, name):
+    for idx, name in enumerate(module_names[1:]):
+        # precompute submodule name
+        submodule_path = '.'.join(module_names[:idx + 1])
+        if hasattr(module, name):
+            module = getattr(module, name)
+        elif find_spec(submodule_path):
+            # trying to find non-attribute subpackage from module
+            module = importlib.import_module(submodule_path)
+        else:
             return False
-        module = getattr(module, name)
     return True
 
 
