@@ -42,7 +42,7 @@ class HorovodStrategy(ParallelStrategy):
     def __init__(
         self,
         accelerator: Optional["pl.accelerators.accelerator.Accelerator"] = None,
-        parallel_devices: Optional[List[torch.device]] = None,
+        parallel_devices: Optional[List[Any]] = None,
         checkpoint_io: Optional[CheckpointIO] = None,
         precision_plugin: Optional[PrecisionPlugin] = None,
     ):
@@ -70,7 +70,11 @@ class HorovodStrategy(ParallelStrategy):
 
     @property
     def root_device(self):
-        return self.parallel_devices[self.local_rank]
+        root_device = self.parallel_devices[self.local_rank]
+        if isinstance(root_device, int):
+            return torch.device(f'cuda:{root_device}')
+        else:
+            return root_device
 
     @property
     def distributed_sampler_kwargs(self):
